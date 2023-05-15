@@ -8,7 +8,7 @@ const {
 // Scale based on iphone 5s' scale
 const scale = SCREEN_WIDTH / 320;
 
-export function noramlize(size) {
+export default function normalize(size) {
     const newSize = size * scale
 
     //checks operating system and adjusts accordingly

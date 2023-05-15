@@ -2,7 +2,7 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Dimensions, Pressable } from "react-native";
 import * as Font from "expo-font";
 import { useEffect, useState } from "react";
-import { noramlize } from "./FontDynam";
+import normalize from "./FontDynam";
 
 export default function HomeScreen({ navigation }) {
   // State to determine when font is loaded
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   },
   welcomText: {
     fontFamily: "Pacifico",
-    fontSize: noramlize(22),
+    fontSize: normalize(22),
     textAlign: "center",
     marginTop: Dimensions.get("window").height * 0.05,
   },
