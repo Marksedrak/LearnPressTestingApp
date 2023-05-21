@@ -1,17 +1,51 @@
-import React from "react";
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { useState } from "react";
+import { Text, StyleSheet, Image } from 'react-native';
 import normalize from "./FontDynam";
 import { Pressable } from "react-native";
 
 export default function Card({ image, title, duration }) {
+    
+    const [isHovered, setIsHovered] = useState(false);
+
+    const handlePressIn = () => {
+        setIsHovered(true);
+    }
+    
+    const handlePressOut = () => {
+        setIsHovered(false);
+    }
+
+    const handleStyle = [
+        styles.card,
+        isHovered && styles.cardHover
+    ]
+    
+    const titleStyle = [
+        styles.title,
+        isHovered && styles.titleHovered
+    ]
+    
+    const descrStyle = [
+        styles.description,
+        isHovered && styles.descriptionHovered
+    ]
+
+    const imageStyle = [
+        styles.cardImage,
+        isHovered && styles.imageHover
+    ]
+
     return (
-        <Pressable style={styles.card} >
+        <Pressable 
+          style={handleStyle}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}>
             <Image
                 source={{ uri: image }}
                 style={styles.cardImage}
             />
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.description}>Duration: {duration}</Text>
+            <Text style={titleStyle}>{title}</Text>
+            <Text style={descrStyle}>Duration: {duration}</Text>
         </Pressable>
     )
 }
@@ -29,11 +63,19 @@ export default function Card({ image, title, duration }) {
             elevation: 2,
             maxWidth: '90%',
         },
+        cardHover: {
+            backgroundColor: '#4B5267',
+            
+        },
         cardImage: {
             width: normalize(200),
             height: normalize(200),
             alignSelf: 'center',
             borderRadius: 3,
+        },
+        imageHover: {
+            borderColor: '#A0D2DB',
+            borderWidth: 2,
         },
         title: {
             fontSize: normalize(16),
@@ -41,8 +83,14 @@ export default function Card({ image, title, duration }) {
             marginBottom: 8,
             textAlign: "center",
         },
+        titleHovered: {
+            color: '#BEE7E8',
+        },
         description: {
             fontSize: 14,
             textAlign: 'center',
+        },
+        descriptionHovered: {
+            color: '#BA9790',
         },
     });

@@ -6,6 +6,7 @@ import normalize from "./FontDynam";
 import Card from "./Card";
 import axios from "axios";
 import { FlatList } from "react-native";
+import LoadingScreen from "./Loading";
 
 export default function Courses({ route }) {
     
@@ -76,7 +77,7 @@ export default function Courses({ route }) {
 
     // Keeps loading till fonts and courses are loaded and ready
     if (!fontLoaded || loading) {
-        return <Text>Loading...</Text>;
+        return <LoadingScreen />;
     }
 
 

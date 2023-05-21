@@ -16,7 +16,7 @@ export default function App() {
                     headerShown: false,
                 }}
             >
-                <Stack.Screen name="Home" component={HomeScreen} />
+                {/* <Stack.Screen name="Home" component={HomeScreen} /> */}
                 <Stack.Screen name="Login" component={Login} />
                 <Stack.Screen name="Courses" component={Courses} />
             </Stack.Navigator>

@@ -1,84 +1,90 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Dimensions, Pressable, TextInput } from "react-native";
+import { StyleSheet, Text, View, Dimensions, Pressable, TextInput, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from "react-native";
 import * as Font from "expo-font";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import normalize from "./FontDynam";
 import axios from "axios";
 
 export default function Login({ navigation }) {
-  // State to determine when font is loaded
+  // All necessary States being set
+  const [loading, setLoading] = useState(false);
   const [fontLoaded, setFontLoaded] = useState(false);
-  const [userName, setuserName] = useState('');
+  const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
-  const [userToken, setToken] = useState('');
-  const [validateStatus, setValidateStatus] = useState(false);
+  const [userToken, setUserToken] = useState('');
+  // const [validateStatus, setValidateStatus] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const URL = "https://myselena.org"
+
+  const passwordInput = useRef(null);
   
   // Login function which obtains a token and validates it
   const Login = async(usrname, pass) => {
-    // console.log(username);
-    // console.log(pass);
+    setLoading(true);
 
     try {
-      const response = await axios.post(URL + '/wp-json/learnpress/v1/token', {
+      const response = await axios.post(`${URL}/wp-json/learnpress/v1/token`, {
         username: usrname,
         password: pass
       })
       
       if (response.status === 200){
-        setToken(response.data.token);
-        // console.log(userToken);
-        // Checks token is validated
-        setValidateStatus(validateToken(userToken));
-        //
+        // Gets token information
+        const token = response.data.token
+        // Gets user's display name to pass with token later
         setDisplayName(response.data.user_display_name);
-        console.log(displayName);
-        navigateToCourses(userToken, displayName);
+        setUserToken(token);
+        // setValidateStatus(true);
       }
     } catch(error) {
       console.log(error);
-      }
+    } finally {
+      setLoading(false);
+    }
   }
+  
+  useEffect(() => {
+    if (userToken !== '') {
+      const isValid = validateToken(userToken);
 
+      if (isValid) {
+        // Navigates to Courses screen if login was successful
+        navigateToCourses(userToken, displayName);
+      }
+    }
+  }, [userToken]);
 
   const navigateToCourses = (token, name) => {
-    if (validateStatus)
-      navigation.navigate('Courses', {token, name})
+    if (token != '')
+      navigation.navigate('Courses', {token: token, name: name})
     else{
       console.log("Sorry was unable to proceed");
     }
   }
 
-  /*
-    This function takes a token and validates it
-  */
-
+  
+  // This function takes a token and validates it
   const validateToken =  async (token) => {
     try {
       const response = await axios.post(
-        URL + '/wp-json/learnpress/v1/token/validate',
+        `${URL}/wp-json/learnpress/v1/token/validate`,
         {},
         {
           headers: {
             'Authorization': `Bearer ${token}`
-          }
-        });
+          },
+        }
+      );
 
-      if (response.data.data.status === 200) {
-        console.log(response.data.message);
-        return true;
-      }
-      else {
-        console.log(response.data.data.status)
-        return false
-      }
-    }
-    catch (error){
+      console.log(response.data.message);
+      return true;  
+    } catch (error) {
       console.log(error);
     }
-  }
+  };
 
+
+  // Loads necessary Fonts
   useEffect(() => {
     async function loadFont() {
       await Font.loadAsync({
@@ -94,48 +100,59 @@ export default function Login({ navigation }) {
     return <Text>Loading...</Text>;
   }
 
-  
-  // const windowWidth = Dimensions.get('window').width;
-  // const windowHeight = Dimensions.get('window').height;
+  const focusNextInput = (nextInputRef) => {
+    if (nextInputRef && nextInputRef.current) {
+      nextInputRef.current.focus();
+    }
+  };
   
   return (
-    <View style={styles.container}>
-      <Text style={[styles.welcomeText, styles.text, styles.shadow]}>
-        Login
-      </Text>
-      <TextInput
-        placeholder="email@mail.com" 
-        onChangeText={
-          text => {
-            setuserName(text)
-            }
-          } 
-        style={
-          styles.inputBox
-        }
-      >
-      </TextInput>
-      <TextInput 
-        placeholder="123456" 
-        secureTextEntry={true} 
-        onChangeText={
-          text => {
-            setPassword(text)
-          }
-        }
-        style={
-          styles.inputBox
-        }
-      >
-      </TextInput>
-      <Pressable onPress={() => Login(userName, password)} style={styles.submit}>
-        <Text style={styles.submitText}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <Text style={[styles.welcomeText, styles.text, styles.shadow]}>
           Login
         </Text>
-      </Pressable>
-      
-      <StatusBar style="light" />
-    </View>
+        <TextInput
+          placeholder="Username" 
+          onSubmitEditing={() => focusNextInput(passwordInput)}
+          onChangeText={
+            text => {
+              setUserName(text)
+              }
+            } 
+          style={
+            styles.inputBox
+          }
+        >
+        </TextInput>
+        <TextInput 
+          ref={passwordInput}
+          placeholder="**********" 
+          onSubmitEditing={() => Login(userName, password)}
+          secureTextEntry={true} 
+          onChangeText={
+            text => {
+              setPassword(text)
+            }
+          }
+          style={
+            styles.inputBox
+          }
+        >
+        </TextInput>
+        {loading ? (
+            <ActivityIndicator color="white" size="large" style={{marginTop: 15}} />
+          ) : (
+        <Pressable onPress={() => Login(userName, password)} style={styles.submit}>
+          <Text style={styles.submitText}>
+            Login
+          </Text>
+        </Pressable>
+        )}
+        
+        <StatusBar style="light" />
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 
