@@ -3,7 +3,7 @@ import { Text, StyleSheet, Image } from 'react-native';
 import normalize from "./FontDynam";
 import { Pressable } from "react-native";
 
-export default function Card({ image, title, duration }) {
+export default function Card({ image, title, duration, onPress }) {
     
     const [isHovered, setIsHovered] = useState(false);
 
@@ -30,22 +30,27 @@ export default function Card({ image, title, duration }) {
         isHovered && styles.descriptionHovered
     ]
 
-    const imageStyle = [
-        styles.cardImage,
-        isHovered && styles.imageHover
-    ]
+    // const imageStyle = [
+    //     styles.cardImage,
+    //     isHovered && styles.imageHover
+    // ]
 
     return (
         <Pressable 
           style={handleStyle}
           onPressIn={handlePressIn}
-          onPressOut={handlePressOut}>
-            <Image
-                source={{ uri: image }}
-                style={styles.cardImage}
-            />
+          onPressOut={handlePressOut}
+          onPress={onPress}>
+            {image && (
+                <Image
+                    source={{ uri: image }}
+                    style={styles.cardImage}
+                />
+            )}
             <Text style={titleStyle}>{title}</Text>
-            <Text style={descrStyle}>Duration: {duration}</Text>
+            {duration && (
+                <Text style={descrStyle}>Duration: {duration}</Text>
+            )}
         </Pressable>
     )
 }
@@ -61,7 +66,8 @@ export default function Card({ image, title, duration }) {
             shadowOpacity: 0.2,
             shadowRadius: 4,
             elevation: 2,
-            maxWidth: '90%',
+            width: '80%',
+            marginTop: 10,
         },
         cardHover: {
             backgroundColor: '#4B5267',
@@ -75,12 +81,12 @@ export default function Card({ image, title, duration }) {
         },
         imageHover: {
             borderColor: '#A0D2DB',
-            borderWidth: 2,
+            borderWidth: 5,
+            borderRadius: 3,
         },
         title: {
             fontSize: normalize(16),
             fontWeight: 'bold',
-            marginBottom: 8,
             textAlign: "center",
         },
         titleHovered: {

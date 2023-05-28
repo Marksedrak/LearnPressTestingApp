@@ -7,72 +7,68 @@ import Card from "./Card";
 import axios from "axios";
 import { FlatList } from "react-native";
 import LoadingScreen from "./Loading";
+import validateToken from "./tvalidate"
 
-export default function Courses({ route }) {
-    
+
+export default function Courses({ route, navigation }) {
+
+    const disName = route.params.name
+    const token = route.params.token
     const [fontLoaded, setFontLoaded] = useState(false);
-    // const [isPressed, setIsPressed] = useState(false);
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const URL = 'https://myselena.org'
 
-    //  This function takes a token and validates it
-    // const validateToken =  async (token) => {
-    // try {
-    //     const response = await axios.post(
-    //     URL + '/wp-json/learnpress/v1/token/validate',
-    //     {},
-    //     {
-    //         headers: {
-    //         'Authorization': `Bearer ${token}`
-    //         }
-    //     });
-
-    //     if (response.data.data.status === 200) {
-    //     console.log(response.data.message);
-    //     }
-    //     else {
-    //     console.log(response.data.data.status)
-    //     }
-    // }
-    // catch (error){
-    //     console.log(error);
-    // }
-    // }
-
-    // const handlePressIn = () => {
-    //     setIsPressed(true);
-    // }
-
-    // const handlePressOut = () => {
-    //     setIsPressed(false);
-    // } 
-
 
     // Loads Font for use in screen
     useEffect(() => {
-        async function loadFontAndCourses() {
-            await Font.loadAsync({
-            Pacifico: require("./assets/Fonts/Pacifico-Regular.ttf"),
-            });
-            setFontLoaded(true);
-            
-            // Fetching courses into response and setting courses
-            try {
-                const response = await axios.get(
-                    URL + '/wp-json/learnpress/v1/courses'
-                );
-                setCourses(response.data);
-            } catch (error) {
-                console.log("Could not get courses")
-                // console.log(response.data)
-                console.log(error);
+        if (validateToken(token)){
+            async function loadFontAndCourses() {
+                await Font.loadAsync({
+                Pacifico: require("./assets/Fonts/Pacifico-Regular.ttf"),
+                });
+                setFontLoaded(true);
+                
+                // Fetching courses into response and setting courses
+                let courses = [];
+                let page = 1;
+                let perPage = 10;
+                while (true) {
+                    try {
+                        const response = await axios.get(
+                            `${URL}/wp-json/learnpress/v1/courses`,
+                            {
+                                params: {
+                                    page,
+                                    perPage
+                                },
+                                headers: {
+                                'Authorization': `Bearer ${token}`
+                                },
+                            }
+                        );
+                        courses.push(...response.data);
+                        if(response.headers.link && response.headers.link.includes('rel="next"')){
+                            // There are more pages
+                            page++;
+                            console.log("nextPage")
+                        } else {
+                            // No more pages
+                            break;
+                        }
+                    } catch (error) {
+                        console.log("Could not get courses")
+                        // console.log(response.data)
+                        console.log(error);
+                        throw error;
+                    }
+                }
+                setCourses(courses);
+                setLoading(false);
             }
 
-            setLoading(false);
+            loadFontAndCourses();
         }
-
-        loadFontAndCourses();
     }, []);
 
     // Keeps loading till fonts and courses are loaded and ready
@@ -81,14 +77,28 @@ export default function Courses({ route }) {
     }
 
 
-    const renderCard= ({ item }) => (
-        <Card key={item.id} title={item.name} duration={item.duration} image={item.image} />
-    );
+    const renderCard= ({ item }) => {
+
+        const handleCoursePress = () => {
+            navigation.navigate('Lessons', { 
+                courseId : item.id,
+                displayName: disName, 
+                token: token, 
+                courseTitle: item.name, 
+                courseDuration: item.duration,
+                courseImage: item.image
+            });
+            console.log("Successfully navigated to Lessons " + item.id)
+        }
+        return (
+            <Card key={item.id} title={item.name} duration={item.duration} image={item.image} onPress={handleCoursePress} />
+        )
+    };
 
     return (
     <View style={styles.container}>
         <Text style={[styles.welcomeText, styles.text, styles.shadow]}>
-        Hello {route.params.name}
+        Hello {disName}
         </Text>
         <FlatList
             data={courses}
@@ -127,47 +137,7 @@ export default function Courses({ route }) {
     cardContainer: {
         justifyContent:'center',
         alignItems: 'center',
+        paddingTop: 15,
+        paddingBottom: 20,
     }
-    // inputBox: {
-    //     backgroundColor: 'rgb(255,100, 50)',
-    //     borderColor: 'rgb(50,50, 50)',
-    //     color: 'white',
-    //     borderRadius: 5,
-    //     fontSize: normalize(18),
-    //     textAlign: 'center',
-    //     padding: 5,
-    //     width: 0.5 * Dimensions.get('screen').width,
-    //     margin: 5
-    // },
-    // submit: {
-    //     borderColor: '#A0D2DB',
-    //     borderWidth: 10,
-    //     borderRadius: 20,
-    //     paddingVertical: 1,
-    //     paddingHorizontal: 2,
-    //     width: 0.25 * Dimensions.get('screen').width,
-    //     backgroundColor: '#BEE7E8',
-    //     margin: 5,
-    //     justifyContent: 'center',
-    //     alignContent: 'center'
-    // },
-    // active: {
-    //     borderColor: '#4B5267',
-    //     borderWidth: 10,
-    //     borderRadius: 20,
-    //     paddingVertical: 1,
-    //     paddingHorizontal: 2,
-    //     width: 0.25 * Dimensions.get('screen').width,
-    //     backgroundColor: '#BA9790',
-    //     margin: 5
-    // },
-    // submitText: {
-    //     fontSize: normalize(18),
-    //     color: '#4B5267',
-    //     textAlign: 'center',
-    //     fontFamily: 'Pacifico',
-    // },
-    // activeText: {
-    //     color: '#3D0000'
-    // },
     });

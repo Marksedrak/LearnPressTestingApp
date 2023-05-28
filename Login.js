@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, Dimensions, Pressable, TextInput, ActivityIndic
 import * as Font from "expo-font";
 import { useEffect, useState, useRef } from "react";
 import normalize from "./FontDynam";
+import validateToken from "./tvalidate"
 import axios from "axios";
 
 export default function Login({ navigation }) {
@@ -61,28 +62,6 @@ export default function Login({ navigation }) {
       console.log("Sorry was unable to proceed");
     }
   }
-
-  
-  // This function takes a token and validates it
-  const validateToken =  async (token) => {
-    try {
-      const response = await axios.post(
-        `${URL}/wp-json/learnpress/v1/token/validate`,
-        {},
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-        }
-      );
-
-      console.log(response.data.message);
-      return true;  
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
 
   // Loads necessary Fonts
   useEffect(() => {
